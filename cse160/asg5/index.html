@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Enhanced Scene</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+        .instruction {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="instruction">Click on a bird to see it change through colors of the rainbow.</div>
+<script type="module">
+    import * as THREE from './js/three.module.js';
+    import { OrbitControls } from './js/OrbitControls.js';
+
+    const scene = new THREE.Scene();
+
+    // Load and set the skybox
+    const loader = new THREE.CubeTextureLoader();
+    const skyboxTexture = loader.load([
+        'sky.jpg',   // Right side
+        'sky.jpg',   // Left side
+        'sky.jpg',   // Top side
+        'sky.jpg',   // Bottom side
+        'sky.jpg',   // Front side
+        'sky.jpg'    // Back side
+    ]);
+    scene.background = skyboxTexture;
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 50;
+
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2; // Limit the camera to not look below the ground plane
+
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    const pointLight = new THREE.PointLight(0xffffff, 1, 200);
+    pointLight.position.set(10, 10, 10);
+    scene.add(pointLight);
+
+    const hemisphereLight = new THREE.HemisphereLight(0xB1E1FF, 0xB97A20, 0.75);
+    hemisphereLight.position.set(0, 50, 0);
+    scene.add(hemisphereLight);
+
+    const textureLoaderBox = new THREE.TextureLoader();
+
+    // Ground Plane with solid color
+    const groundGeometry = new THREE.PlaneGeometry(100, 100);
+    const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -5;
+    scene.add(ground);
+
+    // Function to create a detailed bird using basic shapes
+    function createDetailedBird() {
+        const bird = new THREE.Group();
+
+        // Body
+        const bodyGeometry = new THREE.SphereGeometry(1, 16, 16);
+        const bodyMaterial = new THREE.MeshPhongMaterial({ color: 0x0000ff }); // Blue body
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        bird.add(body);
+
+        // Head
+        const headGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+        const headMaterial = new THREE.MeshPhongMaterial({ color: 0x0000ff }); // Blue head
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        head.position.set(0, 1.2, 0);
+        bird.add(head);
+
+        // Beak
+        const beakGeometry = new THREE.ConeGeometry(0.2, 0.5, 8);
+        const beakMaterial = new THREE.MeshPhongMaterial({ color: 0xffa500 }); // Orange beak
+        const beak = new THREE.Mesh(beakGeometry, beakMaterial);
+        beak.position.set(0, 1.2, 0.5);
+        beak.rotation.x = Math.PI / 2;
+        bird.add(beak);
+
+        // Wings
+        const wingGeometry = new THREE.BoxGeometry(2, 0.1, 1);
+        const wingMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 }); // Dark gray wings
+        const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+        leftWing.position.set(-1.5, 0, 0);
+        leftWing.rotation.z = Math.PI / 4;
+        bird.add(leftWing);
+
+        const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+        rightWing.position.set(1.5, 0, 0);
+        rightWing.rotation.z = -Math.PI / 4;
+        bird.add(rightWing);
+
+        // Tail
+        const tailGeometry = new THREE.ConeGeometry(0.5, 1, 8);
+        const tailMaterial = new THREE.MeshPhongMaterial({ color: 0x0000ff }); // Blue tail
+        const tail = new THREE.Mesh(tailGeometry, tailMaterial);
+        tail.position.set(0, -0.5, -1); // Adjusted position to be behind the body
+        tail.rotation.x = Math.PI; // Adjusted rotation
+        bird.add(tail);
+
+        return bird;
+    }
+
+    // Create multiple birds
+    const birds = [];
+    for (let i = 0; i < 8; i++) {
+        const bird = createDetailedBird();
+        bird.position.set(Math.random() * 40 - 20, Math.random() * 10 + 15, Math.random() * 40 - 20);
+        bird.userData = { 
+            speedX: Math.random() * 0.02 + 0.01,
+            speedY: Math.random() * 0.02 + 0.01,
+            speedZ: Math.random() * 0.02 + 0.01,
+            directionX: Math.random() < 0.5 ? 1 : -1,
+            directionY: Math.random() < 0.5 ? 1 : -1,
+            directionZ: Math.random() < 0.5 ? 1 : -1,
+            isChangingColor: false,
+            colorInterval: null
+        };
+        scene.add(bird);
+        birds.push(bird);
+    }
+
+    // Function to create mountains
+    function createMountain(width, height, color) {
+        const mountainGeometry = new THREE.ConeGeometry(width, height, 4);
+        const mountainMaterial = new THREE.MeshPhongMaterial({ color: color });
+        const mountain = new THREE.Mesh(mountainGeometry, mountainMaterial);
+        mountain.position.y = height / 2 - 5; // Adjusted to sit on the ground
+        mountain.rotation.y = Math.PI / 4; // Rotate to look more like a pyramid
+        return mountain;
+    }
+
+    // Create multiple mountains
+    for (let i = 0; i < 12; i++) {
+        const width = Math.random() * 10 + 5;
+        const height = Math.random() * 20 + 15;
+        const mountain = createMountain(width, height, 0x8B4513);
+        mountain.position.set(Math.random() * 60 - 30, 0, Math.random() * 60 - 30);
+        scene.add(mountain);
+    }
+
+    // Function to create trees
+    function createTree(trunkHeight, trunkRadius, foliageHeight, foliageRadius) {
+        const tree = new THREE.Group();
+
+        // Trunk
+        const trunkGeometry = new THREE.CylinderGeometry(trunkRadius, trunkRadius, trunkHeight, 16);
+        const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 }); // Brown trunk
+        const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+        trunk.position.y = trunkHeight / 2;
+        tree.add(trunk);
+
+        // Foliage
+        const foliageGeometry = new THREE.ConeGeometry(foliageRadius, foliageHeight, 16);
+        const foliageMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 }); // Green foliage
+        const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+        foliage.position.y = trunkHeight + foliageHeight / 2;
+        tree.add(foliage);
+
+        return tree;
+    }
+
+    // Create multiple trees
+    for (let i = 0; i < 20; i++) {
+        const trunkHeight = Math.random() * 3 + 3;
+        const trunkRadius = Math.random() * 0.2 + 0.3;
+        const foliageHeight = Math.random() * 2 + 2;
+        const foliageRadius = Math.random() * 1 + 1;
+        const tree = createTree(trunkHeight, trunkRadius, foliageHeight, foliageRadius);
+        tree.position.set(Math.random() * 60 - 30, -5, Math.random() * 60 - 30);
+        scene.add(tree);
+    }
+
+    // Function to create clouds
+    function createCloud() {
+        const cloud = new THREE.Group();
+
+        const geometry = new THREE.SphereGeometry(2, 16, 16);
+        const material = new THREE.MeshPhongMaterial({ color: 0xffffff }); // White cloud
+
+        for (let i = 0; i < 5; i++) {
+            const part = new THREE.Mesh(geometry, material);
+            part.position.set(Math.random() * 4 - 2, Math.random() * 2, Math.random() * 4 - 2);
+            cloud.add(part);
+        }
+
+        return cloud;
+    }
+
+    // Create multiple clouds
+    const clouds = [];
+    for (let i = 0; i < 5; i++) {
+        const cloud = createCloud();
+        cloud.position.set(Math.random() * 80 - 40, Math.random() * 20 + 30, Math.random() * 80 - 40);
+        cloud.userData = { speed: Math.random() * 0.01 + 0.005 };
+        scene.add(cloud);
+        clouds.push(cloud);
+    }
+
+    // Raycaster for detecting clicks
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    // Rainbow colors
+    const rainbowColors = [
+        0xff0000, // Red
+        0xff7f00, // Orange
+        0xffff00, // Yellow
+        0x00ff00, // Green
+        0x0000ff, // Blue
+        0x4b0082, // Indigo
+        0x8b00ff  // Violet
+    ];
+
+    // Event listener for mouse clicks
+    window.addEventListener('click', onMouseClick, false);
+
+    function onMouseClick(event) {
+        // Convert mouse coordinates to normalized device coordinates (-1 to +1)
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // Update raycaster with camera and mouse position
+        raycaster.setFromCamera(mouse, camera);
+
+        // Calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObjects(birds, true);
+
+        if (intersects.length > 0) {
+            const clickedBird = intersects[0].object.parent;
+
+            // Toggle color-changing state
+            if (!clickedBird.userData.isChangingColor) {
+                clickedBird.userData.isChangingColor = true;
+
+                let colorIndex = 0;
+                clickedBird.userData.colorInterval = setInterval(() => {
+                    clickedBird.children.forEach(part => {
+                        part.material.color.setHex(rainbowColors[colorIndex]);
+                    });
+                    colorIndex = (colorIndex + 1) % rainbowColors.length;
+                }, 100); // Change color every 0.1 seconds
+
+            } else {
+                clickedBird.userData.isChangingColor = false;
+                clearInterval(clickedBird.userData.colorInterval);
+                clickedBird.children.forEach(part => {
+                    part.material.color.set(0x0000ff); // Reset to blue
+                });
+            }
+        }
+    }
+
+    let clock = new THREE.Clock();
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        // Update controls
+        controls.update();
+
+        // Animate each bird
+        let time = clock.getElapsedTime();
+        birds.forEach((bird, index) => {
+            bird.children[3].rotation.z = Math.sin(time * 5 + index) * 0.5; // Left wing
+            bird.children[4].rotation.z = -Math.sin(time * 5 + index) * 0.5; // Right wing
+
+            // Move each bird in a more random path
+            bird.position.x += bird.userData.speedX * bird.userData.directionX;
+            bird.position.y += bird.userData.speedY * bird.userData.directionY;
+            bird.position.z += bird.userData.speedZ * bird.userData.directionZ;
+
+            // Change direction if the bird reaches a certain limit
+            if (bird.position.x > 40 || bird.position.x < -40) bird.userData.directionX *= -1;
+            if (bird.position.y > 30 || bird.position.y < 10) bird.userData.directionY *= -1;
+            if (bird.position.z > 40 || bird.position.z < -40) bird.userData.directionZ *= -1;
+        });
+
+        // Animate clouds
+        clouds.forEach(cloud => {
+            cloud.position.x += cloud.userData.speed;
+            if (cloud.position.x > 50) {
+                cloud.position.x = -50;
+            }
+        });
+
+        renderer.render(scene, camera);
+    }
+    animate();
+
+</script>
+</body>
+</html>

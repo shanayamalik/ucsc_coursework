@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CSE 160: Assignment 2 - Blocky Animal</title>
+  </head>
+
+  <body onload="main()">
+    <canvas id="webgl" width="400" height="400">
+        Please use a browser that supports "canvas"
+    </canvas>
+    <p id="numdot"> xxx </p>
+    <button type="button" id="normalOn">Normal On</button>
+    <button type="button" id="normalOff">Normal Off</button>
+    <button type="button" id="blue">x</button>
+    <br>
+    <br>
+    <button type="button" id="clearButton">x</button>
+    <!-- <br>
+    <br> -->
+    <button type="button" id="pointButton">x</button>
+    <button type="button" id="triButton">x</button>
+
+    <button type="button" id="lightOn">Light On</button>
+    <button type="button" id="lightOff">Light Off</button>
+    
+    <p>
+      Light X: <input type="range" min="-250" max="250" value="0" class="slider" id="lightSlideX">
+      Light Y: <input type="range" min="-250" max="250" value="225" class="slider" id="lightSlideY">
+      Light Z: <input type="range" min="-250" max="250" value="150" class="slider" id="lightSlideZ">
+    </p>
+    
+    <p>
+    x <input type="range" min="0" max="100" value="100" class="slider" id="redSlide">
+    <p>
+    x <input type="range" min="0" max="90" value="5" class="slider" id="yellowSlide">
+    x:
+      <button type="button" id="animationYellowOnButton">ON</button></button>
+      <button type="button" id="animationYellowOffButton">OFF</button></button>
+    <p>
+    x <input type="range" min="0" max="90" value="5" class="slider" id="magentaSlide">
+      x:
+        <button type="button" id="animationMagentaOnButton">ON</button></button>
+        <button type="button" id="animationMagentaOffButton">OFF</button></button>
+
+    <p>
+    Camera Angle <input type="range" min="-180" max="180" value="-90" class="slider" id="cameraAngle">
+
+    <p>Notes to Grader: There are multiple cubes that make up the blocky animal (llama). There is a sphere, and the lighting (ambient + diffuse + specular) work with one another to create a more authentic three-dimensional scene. The visual marker of light location (yellow cube) exists at the top of the scene as it rotates around the world, and it can also be changed in the direction through the three sliders. The blocky llama exists within a simpler version of the world that was created in the third assignment. There is a faint spotlight on the llama, as well as a button to visualize the normals.</p>
+
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/cuon-matrix-cse160.js"></script>
+    <script src="Camera.js"></script>
+    <script src="Point.js"></script>
+    <script src="Triangle.js"></script>
+    <script src="Circle.js"></script>
+    <script src="Cube.js"></script>
+    <script src="Sphere.js"></script>
+    <script src="BlockyAnimal.js"></script>
+    <div id="info"></div>
+    <script src="Lighting.js"></script>
+  </body>
+</html>
