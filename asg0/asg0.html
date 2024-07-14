@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Draw Vector on Canvas</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px; /* Adds space around the entire content */
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    #example {
+      display: block;
+      background: black;
+      margin-bottom: 10px;
+    }
+    #vectorInput {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .input-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .input-group label {
+      margin-right: 5px;
+    }
+    .input-group input {
+      margin-right: 10px;
+    }
+    #drawButton {
+      margin-top: 10px;
+    }
+    .operation-group {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="example" width="400" height="400"></canvas>
+  <div id="vectorInput">
+    <div class="input-group">
+      <label for="v1xInput">v1: x</label>
+      <input id="v1xInput" type="number" placeholder="X"/>
+      <label for="v1yInput">y</label>
+      <input id="v1yInput" type="number" placeholder="Y"/>
+    </div>
+    <div class="input-group">
+      <label for="v2xInput">v2: x</label>
+      <input id="v2xInput" type="number" placeholder="X"/>
+      <label for="v2yInput">y</label>
+      <input id="v2yInput" type="number" placeholder="Y"/>
+    </div>
+    <button id="drawButton">Draw</button>
+    <!-- Operation Selector and Scalar Input -->
+    <div class="operation-group">
+      <select id="operation">
+        <option value="add">Add</option>
+        <option value="subtract">Subtract</option>
+        <option value="multiply">Multiply</option>
+        <option value="divide">Divide</option>
+        <option value="angleBetween">Angle Between</option>
+        <option value="areaTriangle">Area</option>
+        <option value="magnitude">Magnitude</option>
+        <option value="normalize">Normalize</option>
+      </select>
+      <input id="scalar" type="number" placeholder="Scalar" />
+      <button id="operationButton">Draw Operation</button>
+    </div>
+  </div>
+  <script src="lib/cuon-matrix-cse160.js"></script>
+  <script src="asg0.js"></script>
+</body>
+</html>
